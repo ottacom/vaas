@@ -35,13 +35,17 @@ def check_db_presence (macaddress,ipaddress,fqdn_hostname):
 
 
 def verify_host_presence (macaddress,ipaddress,fqdn_hostname):
-    return False
-
-    if db.search(where('fqdn_hostname') == fqdn_hostname ) or db.search(where('macaddress') == macaddress ) or db.search(where('ipaddress') == ipaddress ):
-
+    
+    if db.table('inventory').search(where('fqdn_hostname') == fqdn_hostname ) or db.table('inventory').search(where('macaddress') == macaddress ) or db.table('inventory').search(where('ipaddress') == ipaddress ):
         return True
+    else:
+        return False
 
-
+def verify_group_presence (group):
+    if db.table('inventory').search(where('group')== group):
+        return True
+    else :
+        return False
 
 def db_add_host(macaddress,ipaddress,hostname,fqdn_hostname,group,template,username):
         ddate = strftime("%Y-%m-%d %H:%M:%S", gmtime())

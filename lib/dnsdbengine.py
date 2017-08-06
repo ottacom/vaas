@@ -39,21 +39,75 @@ def reverse(ip):
 
 
 def dns_add_record(deployment_domain,rtype,invalue,outvalue):
-    command =""
-    defaulttl = "300"
 
-    #command += "update delete %s A\n" % domain
-    #command += "update add %s "+rtype+"\n" % domain
-    if rtype == "A" or rtype == "TXT":
-        #update add $DOMAIN 30 A $IPV4
-        command += "zone "+deployment_domain+"\n"
-        command += "update add "+invalue+"."+deployment_domain+" "+defaulttl+" "+rtype+" "+outvalue+"\n"
 
-    if rtype == "PTR":
-        ptr_invalue = reverse(invalue)
-        command += "update add "+ptr_invalue+".in-addr.arpa "+defaulttl+" "+rtype+" "+outvalue+"\n"
+        command =""
+        defaulttl = "300"
+        
+        #command += "update delete %s A\n" % domain
+        #command += "update add %s "+rtype+"\n" % domain
+        if rtype == "A" or rtype == "TXT":
+            #update add $DOMAIN 30 A $IPV4
+            command += "zone "+deployment_domain+"\n"
+            command += "update add "+invalue+"."+deployment_domain+" "+defaulttl+" "+rtype+" "+outvalue+"\n"
 
-    #command +=  "show\nsend\n"
-    command = "sudo nsupdate -k {0} << EOF\n{1}\nEOF\n".format(loadconfig.get_rndckey(), command)
-    #print("Calling the following command now:\n\n" + command)
-    subprocess.call(command, shell=True)
+        if rtype == "PTR":
+            ptr_invalue = reverse(invalue)
+            command += "update add "+ptr_invalue+".in-addr.arpa "+defaulttl+" "+rtype+" "+outvalue+"\n"
+
+        #command +=  "show\nsend\n"
+        command = "sudo nsupdate -k {0} << EOF\n{1}\nEOF\n".format(loadconfig.get_rndckey(), command)
+        #print("Calling the following command now:\n\n" + command)
+        sub=subprocess.call(command, shell=True)
+        if sub <> 0 :
+            return False
+        else:
+            return True
+
+def dns_del_record(deployment_domain,rtype,invalue):
+
+
+        command =""
+        defaulttl = "300"
+
+        #command += "update delete %s A\n" % domain
+        #command += "update add %s "+rtype+"\n" % domain
+        if rtype == "A" or rtype == "TXT":
+            #update add $DOMAIN 30 A $IPV4
+            command += "zone "+deployment_domain+"\n"
+            command += "update delete "+invalue+"."+deployment_domain+" "+rtype+"\n"
+
+        if rtype == "PTR":
+            ptr_invalue = reverse(invalue)
+            command += "update delete "+ptr_invalue+".in-addr.arpa "+rtype+"\n"
+
+        #command +=  "show\nsend\n"
+        command = "sudo nsupdate -k {0} << EOF\n{1}\nEOF\n".format(loadconfig.get_rndckey(), command)
+        #print("Calling the following command now:\n\n" + command)
+        sub=subprocess.call(command, shell=True)
+        if sub <> 0 :
+            return False
+        else:
+            return True
+
+def dns_rollback_record(deployment_domain,rtype,invalue):
+
+
+        command =""
+        defaulttl = "300"
+
+        #command += "update delete %s A\n" % domain
+        #command += "update add %s "+rtype+"\n" % domain
+        if rtype == "A" or rtype == "TXT":
+            #update add $DOMAIN 30 A $IPV4
+            command += "zone "+deployment_domain+"\n"
+            command += "update delete "+invalue+"."+deployment_domain+" "+rtype+"\n"
+
+        if rtype == "PTR":
+            ptr_invalue = reverse(invalue)
+            command += "update delete "+ptr_invalue+".in-addr.arpa "+rtype+"\n"
+
+        #command +=  "show\nsend\n"
+        command = "sudo nsupdate -k {0} << EOF\n{1}\nEOF\n".format(loadconfig.get_rndckey(), command)
+        #print("Calling the following command now:\n\n" + command)
+        sub=subprocess.call(command, shell=True)

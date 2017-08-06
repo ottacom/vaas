@@ -7,6 +7,8 @@ from lib import smartvalidation
 from lib import dnsdbengine
 from lib import tinydbengine
 from lib import selfgeneration
+from lib import progressbar
+
 
 import validators #https://validators.readthedocs.io/en/latest/#module-validators.domain
 import dns.query #http://www.dnspython.org/
@@ -59,6 +61,11 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
         if smartvalidation.check_dns_hostname_presence(fqdn_hostname) == False:
             return False
 
+    progressbar(65,100,'Check RFC group compliance..      ')
+
+    if smartvalidation.check_group_syntax(group) == False:
+        return False
+
     #Check database
     progressbar(70,100,'Check database inventory..      ')
     if tinydbengine.check_db_presence(macaddress,ipaddress,fqdn_hostname) == False:
@@ -75,12 +82,18 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
         return False
 
 
-    progressbar(100,100,'Everything is ok here!! Start deploy of '+fqdn_hostname)
+    progressbar(100,100,'Everything is ok here!! Start deployment of '+fqdn_hostname)
     print
     #Hurra' everything's fine here !! Go ahead
     return True
 
 
+def total_rollback():
+    #Rollback
+    tinydbengine.db_del_host(ipaddress)
+    dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'A', prefix+dpl_hostname)
+    dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'PTR', ipaddress)
+    dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'TXT', prefix+dpl_hostname)
 
 #MAIN
 if __name__ == "__main__":
@@ -124,8 +137,13 @@ if __name__ == "__main__":
 
     #load and normalize command parameters
     args = parser.parse_args()
+    #Prefix needs to be the frist control in order to generate the hostname
+    if args.prefix:
+        prefix=args.prefix.lower()
+    else:
+        prefix = loadconfig.get_hostname_prefix()
     if args.dpl_hostname:
-        dpl_hostname=args.dpl_hostname.lower()
+        dpl_hostname=prefix+args.dpl_hostname.lower()
     else:
         dpl_hostname =""
     if args.macaddress:
@@ -134,71 +152,73 @@ if __name__ == "__main__":
         macaddress =""
     ipaddress=args.ipaddress
     template=args.template
-    if args.group:
-        group=args.group.lower()
-    else:
-        group =""
-    if args.prefix:
-        prefix=args.prefix.lower()
-    else:
-        prefix =""
+    group=args.group
     username=getpass.getuser()
 
-    #normalize  FQDN
-    if prefix:
-        fqdn_hostname = prefix+dpl_hostname+"."+loadconfig.get_deployment_domain()
-    else:
-        if loadconfig.get_hostname_prefix:
-            fqdn_hostname = loadconfig.get_hostname_prefix()+dpl_hostname+"."+loadconfig.get_deployment_domain()
-        else:
-            fqdn_hostname = dpl_hostname+"."+loadconfig.get_deployment_domain()
-
-    #####
 
 
+
+    if tinydbengine.verify_group_presence(group) == False:
+        print "Info: A new group "+group+" will be create"
 
 
     if not macaddress:
-
+        progressbar(5,100,'Generating new macaddress..')
         selfgeneration.selfgenerate_macaddress()
-        progressbar(10,100,'Generating new macaddress..')
         macaddress = selfgeneration.get_next_macaddress()
 
     if not ipaddress:
-        selfgeneration.selfgenerate_ipaddress()
         progressbar(10,100,'Generating new ipaddress..')
+        selfgeneration.selfgenerate_ipaddress()
         ipaddress = selfgeneration.get_next_ipaddress()
 
+    if not dpl_hostname:
+        progressbar(15,100,'Generating new hostname..')
+        selfgeneration.selfgenerate_hostname(prefix,ipaddress)
+        dpl_hostname = selfgeneration.get_next_hostname()
 
+    #normalize  FQDN needs to be here after dpl_hostname valorization
+    fqdn_hostname = dpl_hostname+"."+loadconfig.get_deployment_domain()
+
+
+
+    #####
     if overall_parameters_validation(macaddress, ipaddress, dpl_hostname, prefix) == True  :
         progressbar(10,100,'Loading inventory...')
 
-        #Adding host to the db
-        progressbar(20,100,'Adding host in the inventory...')
 
-
-        tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,prefix+dpl_hostname,group,template,username)
         if tinydbengine.verify_host_presence(macaddress,ipaddress,fqdn_hostname) == True:
             print "Someting is going wrong on tinyDB"
             sys.exit(1)
 
+        #Adding host to the db
+        progressbar(20,100,'Adding host in the inventory...')
+        tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,prefix+dpl_hostname,group,template,username)
 
         #Adding host to dns
         progressbar(30,100, "Adding host in the dns...            ")
         ddate = strftime("%Y-%m-%d-%H:%M:%S", gmtime())
 
         txt_string = macaddress+","+ipaddress+","+group+","+template+","+ddate
-        dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'A',prefix+dpl_hostname,ipaddress) #adding A record
-        dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'PTR',ipaddress,prefix+fqdn_hostname) #adding PTR record
-        dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'TXT',prefix+dpl_hostname+".info",txt_string) #adding TXT record
+        #adding A ,PTR, TXTrecord
+
+        if dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'A',dpl_hostname,ipaddress) == False \
+            or dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'PTR',ipaddress,fqdn_hostname) == False \
+            or dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'TXT',dpl_hostname+'.info',txt_string)==False :
+            progressbar(0,100, "Rollback procedure activated, nothing has been changed")
+
+            #Rollback
+            total_rollback()
+            quit()
+            sys.exit(1)
 
         if smartvalidation.verify_dns_ipaddress_presence(ipaddress) == False or smartvalidation.verify_dns_hostname_presence(fqdn_hostname) == False:
                 progressbar(0,100, "Rollback procedure , nothing has been changed")
-                #Rollback
-                tinydbengine.db_del_host(ipaddress)
+                total_rollback()
+                quit()
                 sys.exit(1)
 
-        progressbar(100,100, "Host "+fqdn_hostname+" has been deployed!")
+        progressbar(100,100, "Host "+fqdn_hostname+" with ipaddress "+ipaddress+" has been deployed!")
         print
 
 

@@ -114,7 +114,7 @@ def selfgenerate_ipaddress():
                     next_ipaddress=str(netaddr.IPAddress(next_ipaddress))
                 else:
                     #find hall
-                    
+
                     next_ipaddress = str(int(miss_ipaddress[0]))
                     next_ipaddress=str(netaddr.IPAddress(next_ipaddress))
 
@@ -122,8 +122,13 @@ def selfgenerate_ipaddress():
 
     except Exception, e:
         print e
-        print "Something is going wrong during the ipaddress sel generation process, please check the consistency"
+        print "Something is going wrong during the ipaddress self generation process, the db consistency"
         sys.exit(1)
+
+def selfgenerate_hostname(prefix,ipaddress):
+    global next_hostname
+
+    next_hostname = prefix+ipaddress.replace(".", "-")
 
 
 def get_next_hostname():

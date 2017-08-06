@@ -14,7 +14,7 @@ def check_hostname_syntax(hostname):
 
     if hostname:
         #if re.match("^[a-zA-Z0-9]*$", hostname):
-        if not set('[~!@#$%^&*()_+{}":;\']+$').intersection(hostname):
+        if not set('[~!@#$%^&*()+{}":;\']+$').intersection(hostname):
                 return True
         else:
 
@@ -23,10 +23,26 @@ def check_hostname_syntax(hostname):
 
 def check_prefix_syntax(prefix):
 
-        if not set('[~!@#$%^&*()_+{}":;\']+$').intersection(prefix):
+        if not set('[~!@#$%^&*()+{}":;\']+$').intersection(prefix):
             return True
         else:
             print "The prefix "+prefix+" specified is not rfc compliant"
+            return False
+
+def check_group_syntax(group):
+
+    #syntax rfc control
+    if len(group) > 255:
+
+        return False
+
+    if group:
+
+        if not set('[~!@#$%^&*()+{}":;\']+$').intersection(group):
+                return True
+        else:
+
+            print"The group "+group+" specified is not rfc compliant"
             return False
 
 def check_dns_hostname_presence(hostname):
@@ -107,6 +123,8 @@ def verify_dns_ipaddress_presence(ipaddress):
     if not hostname:
 
         return False
+
+
 
 
 
