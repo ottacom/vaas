@@ -1,0 +1,5 @@
+[tomcat]
+dpl-192-168-80-98.dpl-dmi.dk
+
+[control]
+ctrl01-ansible ansible_connection=local
