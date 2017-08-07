@@ -3,7 +3,7 @@ import validators
 from netaddr import * #http://netaddr.readthedocs.io/en/latest/tutorial_01.html
 import os, sys
 from lib import spinner
-
+import subprocess
 
 def check_hostname_syntax(hostname):
 
@@ -45,27 +45,35 @@ def check_group_syntax(group):
             print"The group "+group+" specified is not rfc compliant"
             return False
 
-def check_dns_hostname_presence(hostname):
+def check_dns_hostname_presence(hostname,silence):
     try:
-
-
         ip=socket.gethostbyname(hostname)
-        if ip:
+        if ip and silence !="s":
 
             print "This hostname "+hostname+" is already taken from "+ip+" please check your inventory"
-            return False
-    except  socket.gaierror as e:
             return True
+    except  socket.gaierror as e:
+            return False
     except :
             print "I can't verify if the hostname is already taken , please check your DNS"
             return False
 
-def verify_dns_hostname_presence(hostname):
-    return True
-    ip=socket.gethostbyname(hostname)
-    if not ip:
+def check_dns_ipaddress_presence(ipaddress,silence):
+    try:
+        hostname=socket.gethostbyaddr(ipaddress)
+        hostmane_res=hostname[0]
+        if hostname and silence !="s":
+            print "The ip address "+ipaddress+" is already taken from "+hostmane_res+" please check your inventory"
+            return True
 
-        return False
+    except  socket.herror as e:
+            if e.args[0] == 1:
+                return False
+
+    except :
+            print "I can't verify if the ip address "+ipaddress+" is already taken , please check your DNS"
+            return True
+
 
 def check_dns_configuration(hostname):
     try:
@@ -98,74 +106,71 @@ def check_ipaddress(ipaddress):
     else:
         return True
 
-def check_dns_ipaddress_presence(ipaddress):
-    try:
-        hostname=socket.gethostbyaddr(ipaddress)
-        hostmane_res=hostname[0]
-        if hostname:
-            print "The ip address "+ipaddress+" is already taken from "+hostmane_res+" please check your inventory"
-            return False
-
-    except  socket.herror as e:
-            if e.args[0] == 1:
-                return True
-
-    except :
-            print "I can't verify if the ip address "+ipaddress+" is already taken , please check your DNS"
-            return False
-
-
-def verify_dns_ipaddress_presence(ipaddress):
-    return True
-
-    hostname=socket.gethostbyaddr(ipaddress)
-    hostmane_res=hostname[0]
-    if not hostname:
-
-        return False
 
 
 
 
 
 def check_ipaddress_scope(ipaddress,scope_start,scope_end):
-
-
     if not ((IPAddress(ipaddress) >= IPAddress(scope_start)) and  (IPAddress(ipaddress) <= IPAddress(scope_end))):
             print "The ip "+ipaddress+" is out of the scope"
             return False
 
+
 def check_ipaddress_network_presence(ipaddress,interface):
+    try:
+            # ping is optional (sends a WHO_HAS request)
 
-    # ping is optional (sends a WHO_HAS request)
-
-    os.popen('ping -c 2 %s -I %s -W 1'  % (ipaddress,interface))
-
-    # grep with a space at the end of IP address to make sure you get a single line
-    fields = os.popen('grep "%s " /proc/net/arp' % ipaddress).read().split()
-    if len(fields) == 6 and fields[3] != "00:00:00:00:00:00":
-        if fields[3]==macaddress:
-            print "The ip address "+ipaddress+" with macaddress "+fields[3]+" is already present the deployment the network"
+        command = 'ping -c 2 '+ipaddress+' -I '+interface+' -W 1 > /dev/null'
+        sub=subprocess.call(command, shell=True)
+        if sub == 1:
             return False
-    else:
+        if sub == 0 :
+
+            # grep with a space at the end of IP address to make sure you get a single line
+            fields = os.popen('arp -a | grep '+ipaddress).read().split()
+            if len(fields) == 6 and fields[3] != "00:00:00:00:00:00":
+                if fields[3]==macaddress:
+                    print "The ip address "+ipaddress+" is already present the deployment the network with macaddress "+fields[3]
             return True
+        else:
+            print"Something is going wrong on network side validation during syscall arping"
+            return False
+
+
+
+
+
+    except Exception, e:
+        print e
+        print "Something is going wrong on network side validation , please check if network deployment network interface is correct in ./conf/default.conf"
+        return False
 
 
 def check_macaddress_network_presence(macaddress,interface):
 
+    try:
 
-
-    localmac = open('/sys/class/net/'+interface+'/address').readline().strip()
-    if localmac==macaddress:
-        print "The macaddress "+macaddress+" is already present on this server"
-        return False
-
-    os.popen('arping -c 2 %s -i %s -W 1' % (macaddress,interface))
-    # grep with a space at the end of IP address to make sure you get a single line
-    fields = os.popen('grep "%s " /proc/net/arp' % macaddress).read().split()
-    if len(fields) == 6 and fields[3] != "00:00:00:00:00:00":
-        if fields[3]==macaddress:
-            print "The macaddress "+macaddress+" with ipaddress "+fields[1]+" is already present the deployment the network"
+        localmac = open('/sys/class/net/'+interface+'/address').readline().strip()
+        if localmac==macaddress:
+            print "The macaddress "+macaddress+" is already present on this server"
             return False
-    else:
+        command = 'arping -c 2 '+macaddress+' -i '+interface+' -W 1 > /dev/null'
+        sub=subprocess.call(command, shell=True)
+        if sub == 1:
+            return False
+        if sub == 0 :
+            fields = os.popen('arp -a '%s  % macaddress).read().split()
+            if len(fields) == 6 and fields[3] != "00:00:00:00:00:00":
+                if fields[3]==macaddress:
+                    print "The macaddress "+macaddress+" is already present the deployment the network on ip"+fields[1]
             return True
+        else:
+            print"Something is going wrong on network side validation during syscall arping"
+            return False
+
+
+    except Exception, e:
+        print e
+        print "Something is going wrong on network side validation , please check if network deployment network interface is correct in ./conf/default.conf"
+        return False

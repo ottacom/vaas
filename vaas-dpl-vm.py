@@ -16,6 +16,7 @@ import dns.tsigkeyring
 import dns.update
 import dns.resolver
 import sys
+import os
 import getpass
 from time import gmtime, strftime
 
@@ -48,7 +49,7 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
     if  smartvalidation.check_ipaddress(ipaddress) == False:
             return False
     else:
-        if smartvalidation.check_dns_ipaddress_presence(ipaddress) == False:
+        if smartvalidation.check_dns_ipaddress_presence(ipaddress,"") == True:
             return False
         else:
             progressbar(55,100,'Check scope...                         ')
@@ -58,7 +59,7 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
     if smartvalidation.check_hostname_syntax(fqdn_hostname) == False:
         return False
     else:
-        if smartvalidation.check_dns_hostname_presence(fqdn_hostname) == False:
+        if smartvalidation.check_dns_hostname_presence(fqdn_hostname,"") == True:
             return False
 
     progressbar(65,100,'Check RFC group compliance..      ')
@@ -68,17 +69,18 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
 
     #Check database
     progressbar(70,100,'Check database inventory..      ')
-    if tinydbengine.check_db_presence(macaddress,ipaddress,fqdn_hostname) == False:
-
+    if tinydbengine.check_db_presence(macaddress,ipaddress,fqdn_hostname) == True:
         return False
     progressbar(80,100,'Check RFC prefix compliance..      ')
     if smartvalidation.check_prefix_syntax(prefix) == False:
         return False
-    progressbar(90,100,'Check ipaddress presence on the network..      ')
-    if smartvalidation.check_ipaddress_network_presence(ipaddress,loadconfig.get_deployment_interface()) == False:
+
+    progressbar(90,100,'Check macaddress presence on the network..     ')
+    if smartvalidation.check_macaddress_network_presence(macaddress,loadconfig.get_deployment_interface()) == True:
         return False
-    progressbar(100,100,'Check macaddress presence on the network..     ')
-    if smartvalidation.check_macaddress_network_presence(macaddress,loadconfig.get_deployment_interface()) == False:
+
+    progressbar(95,100,'Check ipaddress presence on the network..      ')
+    if smartvalidation.check_ipaddress_network_presence(ipaddress,loadconfig.get_deployment_interface()) == True:
         return False
 
 
@@ -91,10 +93,10 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
 def total_rollback():
     #Rollback
     tinydbengine.db_del_host(ipaddress)
-    dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'A', prefix+dpl_hostname)
+    dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'A', dpl_hostname)
     dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'PTR', ipaddress)
-    dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'TXT', prefix+dpl_hostname)
-
+    dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'TXT', dpl_hostname+".info")
+    print
 #MAIN
 if __name__ == "__main__":
 
@@ -155,11 +157,12 @@ if __name__ == "__main__":
     group=args.group
     username=getpass.getuser()
 
-
-
+    print
+    print "Vaas phase 1/2 : Starting deep consistency control go-nogo procedure"
 
     if tinydbengine.verify_group_presence(group) == False:
         print "Info: A new group "+group+" will be create"
+
 
 
     if not macaddress:
@@ -183,44 +186,47 @@ if __name__ == "__main__":
 
 
     #####
-    if overall_parameters_validation(macaddress, ipaddress, dpl_hostname, prefix) == True  :
-        progressbar(10,100,'Loading inventory...')
+    #os.system('clear')
+
+    if overall_parameters_validation(macaddress, ipaddress, dpl_hostname, prefix) == False  :
+
+        quit()
+        sys.exit(1)
+
+    print "Vaas phase 2/2 : Deploying the host"
+    progressbar(0,100,'Working on the  inventory...')
 
 
-        if tinydbengine.verify_host_presence(macaddress,ipaddress,fqdn_hostname) == True:
-            print "Someting is going wrong on tinyDB"
-            sys.exit(1)
+    if tinydbengine.check_db_presence(macaddress,ipaddress,fqdn_hostname) == True:
+        print "Someting is going wrong on tinyDB , consider a database consolidation e before"
+        sys.exit(1)
 
-        #Adding host to the db
-        progressbar(20,100,'Adding host in the inventory...')
-        tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,prefix+dpl_hostname,group,template,username)
+    #Adding host to the db
+    progressbar(20,100,'Adding host in the inventory...')
+    tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,prefix+dpl_hostname,group,template,username)
+    #Adding host to dns
+    progressbar(30,100, "Adding host in the dns...            ")
+    ddate = strftime("%Y-%m-%d-%H:%M:%S", gmtime())
 
-        #Adding host to dns
-        progressbar(30,100, "Adding host in the dns...            ")
-        ddate = strftime("%Y-%m-%d-%H:%M:%S", gmtime())
+    txt_string = macaddress+","+ipaddress+","+group+","+template+","+ddate
+    #adding A ,PTR, TXTrecord
 
-        txt_string = macaddress+","+ipaddress+","+group+","+template+","+ddate
-        #adding A ,PTR, TXTrecord
+    if dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'A',dpl_hostname,ipaddress) == False \
+        or dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'PTR',ipaddress,fqdn_hostname) == False \
+        or dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'TXT',dpl_hostname+'.info',txt_string)==False :
+        progressbar(0,100, "Rollback procedure activated, nothing has been changed")
+        print "Someting is going wrong during DNS update"
+        #Rollback
+        total_rollback()
+        quit()
+        sys.exit(1)
 
-        if dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'A',dpl_hostname,ipaddress) == False \
-            or dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'PTR',ipaddress,fqdn_hostname) == False \
-            or dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'TXT',dpl_hostname+'.info',txt_string)==False :
+    if smartvalidation.check_dns_ipaddress_presence(ipaddress,"s") == False or smartvalidation.check_dns_hostname_presence(fqdn_hostname,"s") == False:
             progressbar(0,100, "Rollback procedure activated, nothing has been changed")
-
-            #Rollback
             total_rollback()
             quit()
             sys.exit(1)
 
-        if smartvalidation.verify_dns_ipaddress_presence(ipaddress) == False or smartvalidation.verify_dns_hostname_presence(fqdn_hostname) == False:
-                progressbar(0,100, "Rollback procedure , nothing has been changed")
-                total_rollback()
-                quit()
-                sys.exit(1)
-
-        progressbar(100,100, "Host "+fqdn_hostname+" with ipaddress "+ipaddress+" has been deployed!")
-        print
-
-
-    else:
-        quit()
+    progressbar(100,100, "Host "+fqdn_hostname+" with ipaddress "+ipaddress+" has been deployed!")
+    print
+    print

@@ -3,6 +3,7 @@ from tinydb import TinyDB, where
 from time import gmtime, strftime
 import time
 import loadconfig
+
 def db_init_database():
     global db
     global table
@@ -19,27 +20,22 @@ def check_db_presence (macaddress,ipaddress,fqdn_hostname):
 
     if db.table('inventory').search(where('fqdn_hostname') == fqdn_hostname ):
 
-        print "The "+fqdn_hostname+" is already present in the database"
-        return False
+        print "The hostname "+fqdn_hostname+" is already present in the database"
+        return True
     if db.table('inventory').search(where('macaddress') == macaddress ):
 
-        print "The "+macaddress+" is already present in the database"
-        return False
+        print "The macaddress "+macaddress+" is already present in the database"
+        return True
 
     if db.table('inventory').search(where('ipaddress') == ipaddress ):
 
-        print "The "+ipaddress+" is already present in the database"
-        return False
-
-    return True
-
-
-def verify_host_presence (macaddress,ipaddress,fqdn_hostname):
-    
-    if db.table('inventory').search(where('fqdn_hostname') == fqdn_hostname ) or db.table('inventory').search(where('macaddress') == macaddress ) or db.table('inventory').search(where('ipaddress') == ipaddress ):
+        print "The ipaddress"+ipaddress+" is already present in the database"
         return True
-    else:
-        return False
+
+    return False
+
+
+
 
 def verify_group_presence (group):
     if db.table('inventory').search(where('group')== group):

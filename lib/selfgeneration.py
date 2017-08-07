@@ -28,8 +28,9 @@ def selfgenerate_macaddress():
 
                     #print val[x]["macaddress"]
                     #macaddress=inventory[x]["macaddress"]
-                    macaddress = row["macaddress"].replace(":", "")
-                    macaddress = int(macaddress)
+                    #macaddress = row["macaddress"].replace(":", "")
+                    macaddress = row["macaddress"].split(":")
+                    macaddress =int("0x"+macaddress,0)
                     maclist.append(macaddress)
 
 
