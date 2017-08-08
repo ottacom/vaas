@@ -34,7 +34,7 @@ def progressbar(count, total, suffix=''):
 
 
 def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
-    progressbar(30,100,'Dns validation..      ')
+    progressbar(35,100,'Dns validation..      ')
 
     if smartvalidation.check_dns_configuration("ns."+loadconfig.get_deployment_domain()) == False:
         return False
@@ -45,37 +45,37 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
     if smartvalidation.check_macaddress(macaddress) == False:
         return False
 
-    progressbar(50,100,'Check RFC ipaddress compliance..      ')
+    progressbar(42,100,'Check RFC ipaddress compliance..      ')
     if  smartvalidation.check_ipaddress(ipaddress) == False:
             return False
     else:
         if smartvalidation.check_dns_ipaddress_presence(ipaddress,"") == True:
             return False
         else:
-            progressbar(55,100,'Check scope...                         ')
+            progressbar(45,100,'Check scope...                         ')
             if smartvalidation.check_ipaddress_scope(ipaddress,loadconfig.get_deployment_network_scope_from(),loadconfig.get_deployment_network_scope_to()) == False:
                 return False
-    progressbar(60,100,'Check RFC fqdn compliance..      ')
+    progressbar(50,100,'Check RFC fqdn compliance..      ')
     if smartvalidation.check_hostname_syntax(fqdn_hostname) == False:
         return False
     else:
         if smartvalidation.check_dns_hostname_presence(fqdn_hostname,"") == True:
             return False
 
-    progressbar(65,100,'Check RFC group compliance..      ')
+    progressbar(52,100,'Check RFC group compliance..      ')
 
     if smartvalidation.check_group_syntax(group) == False:
         return False
 
     #Check database
-    progressbar(70,100,'Check database inventory..      ')
+    progressbar(60,100,'Check database inventory..      ')
     if tinydbengine.check_db_presence(macaddress,ipaddress,fqdn_hostname) == True:
         return False
-    progressbar(80,100,'Check RFC prefix compliance..      ')
+    progressbar(65,100,'Check RFC prefix compliance..      ')
     if smartvalidation.check_prefix_syntax(prefix) == False:
         return False
 
-    progressbar(90,100,'Check if the macaddress is already present on the network..     ')
+    progressbar(70,100,'Check if the macaddress is already present on the network..     ')
     if smartvalidation.check_macaddress_network_presence(macaddress,loadconfig.get_deployment_interface(),"") == True:
         return False
 
@@ -166,17 +166,17 @@ if __name__ == "__main__":
 
 
     if not macaddress:
-        progressbar(5,100,'Generating new macaddress..')
+        progressbar(10,100,'Generating new macaddress..')
         selfgeneration.selfgenerate_macaddress()
         macaddress = selfgeneration.get_next_macaddress()
 
     if not ipaddress:
-        progressbar(10,100,'Generating new ipaddress..')
+        progressbar(20,100,'Generating new ipaddress..')
         selfgeneration.selfgenerate_ipaddress()
         ipaddress = selfgeneration.get_next_ipaddress()
 
     if not dpl_hostname:
-        progressbar(15,100,'Generating new hostname..')
+        progressbar(30,100,'Generating new hostname..')
         selfgeneration.selfgenerate_hostname(prefix,ipaddress)
         dpl_hostname = selfgeneration.get_next_hostname()
 
