@@ -117,58 +117,47 @@ def check_ipaddress_scope(ipaddress,scope_start,scope_end):
             return False
 
 
-def check_ipaddress_network_presence(ipaddress,interface):
-    try:
+def check_ipaddress_network_presence(ipaddress,interface,silence):
+    #try:
             # ping is optional (sends a WHO_HAS request)
-
+        
         command = 'ping -c 2 '+ipaddress+' -I '+interface+' -W 1 > /dev/null'
         sub=subprocess.call(command, shell=True)
+
         if sub == 1:
             return False
-        if sub == 0 :
-
-            # grep with a space at the end of IP address to make sure you get a single line
-            fields = os.popen('arp -a | grep '+ipaddress).read().split()
-            if len(fields) == 6 and fields[3] != "00:00:00:00:00:00":
-                if fields[3]==macaddress:
-                    print "The ip address "+ipaddress+" is already present the deployment the network with macaddress "+fields[3]
+        if sub == 0 and silence !="" :
+            fields = os.popen('arp -a '+ipaddress).read().split()
+            print "The ip address "+ipaddress+" is already present the deployment the network with macaddress "+fields[3]
             return True
         else:
             print"Something is going wrong on network side validation during syscall arping"
-            return False
-
-
-
-
-
-    except Exception, e:
+            return True
+    #except Exception, e:
         print e
         print "Something is going wrong on network side validation , please check if network deployment network interface is correct in ./conf/default.conf"
-        return False
+        return True
 
 
-def check_macaddress_network_presence(macaddress,interface):
+def check_macaddress_network_presence(macaddress,interface,silence):
 
     try:
 
         localmac = open('/sys/class/net/'+interface+'/address').readline().strip()
         if localmac==macaddress:
             print "The macaddress "+macaddress+" is already present on this server"
-            return False
+            return True
         command = 'arping -c 2 '+macaddress+' -i '+interface+' -W 1 > /dev/null'
         sub=subprocess.call(command, shell=True)
         if sub == 1:
             return False
-        if sub == 0 :
-            fields = os.popen('arp -a '%s  % macaddress).read().split()
-            if len(fields) == 6 and fields[3] != "00:00:00:00:00:00":
-                if fields[3]==macaddress:
-                    print "The macaddress "+macaddress+" is already present the deployment the network on ip"+fields[1]
+        if sub == 0 and silence !="" :
+            fields = ('arping -c 1 '+macaddress+' -i '+interface+' -W 1 > /dev/null').read().split()
+            print "The macaddress "+macaddress+" is already present the deployment the network on ip"+fields[1]
             return True
         else:
             print"Something is going wrong on network side validation during syscall arping"
-            return False
-
+            return True
 
     except Exception, e:
         print e

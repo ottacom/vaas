@@ -75,16 +75,16 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
     if smartvalidation.check_prefix_syntax(prefix) == False:
         return False
 
-    progressbar(90,100,'Check macaddress presence on the network..     ')
-    if smartvalidation.check_macaddress_network_presence(macaddress,loadconfig.get_deployment_interface()) == True:
+    progressbar(90,100,'Check if the macaddress is already present on the network..     ')
+    if smartvalidation.check_macaddress_network_presence(macaddress,loadconfig.get_deployment_interface(),"") == True:
         return False
 
-    progressbar(95,100,'Check ipaddress presence on the network..      ')
-    if smartvalidation.check_ipaddress_network_presence(ipaddress,loadconfig.get_deployment_interface()) == True:
+    progressbar(95,100,'Check if the ipaddress is already present on the network..      ')
+    if smartvalidation.check_ipaddress_network_presence(ipaddress,loadconfig.get_deployment_interface(),"") == True:
         return False
 
 
-    progressbar(100,100,'Everything is ok here!! Start deployment of '+fqdn_hostname)
+    progressbar(100,100,'Everything is ok here!! Go to deploy '+fqdn_hostname)
     print
     #Hurra' everything's fine here !! Go ahead
     return True
@@ -189,12 +189,13 @@ if __name__ == "__main__":
     #os.system('clear')
 
     if overall_parameters_validation(macaddress, ipaddress, dpl_hostname, prefix) == False  :
-
+        progressbar(0,100,'No-go problems detected...')
+        print
         quit()
         sys.exit(1)
 
     print "Vaas phase 2/2 : Deploying the host"
-    progressbar(0,100,'Working on the  inventory...')
+    progressbar(1,100,'Working on the  inventory...')
 
 
     if tinydbengine.check_db_presence(macaddress,ipaddress,fqdn_hostname) == True:
@@ -214,7 +215,7 @@ if __name__ == "__main__":
     if dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'A',dpl_hostname,ipaddress) == False \
         or dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'PTR',ipaddress,fqdn_hostname) == False \
         or dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'TXT',dpl_hostname+'.info',txt_string)==False :
-        progressbar(0,100, "Rollback procedure activated, nothing has been changed")
+        progressbar(0,100, "No-go, Rollback procedure activated, nothing has been changed")
         print "Someting is going wrong during DNS update"
         #Rollback
         total_rollback()
