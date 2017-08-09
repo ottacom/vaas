@@ -147,14 +147,14 @@ def selfgenerate_ipaddress():
                     next_ipaddress = loadconfig.get_deployment_network_scope_from()
                 else:
                     if len(db.table('inventory')) == 1:
-                            next_ipaddress=str(int(iplist[-1]+i))
+                        next_ipaddress=str(int(iplist[-1]+i))
                     else:
+                        if len(db.table('inventory').search(where('ipaddress')==loadconfig.get_deployment_network_scope_from())) == 0:
+                            next_ipaddress = loadconfig.get_deployment_network_scope_from()
                         #no hall use the higest add
                         if not next_ipaddress:
                             next_ipaddress= str(int(iplist[-1]+i))
-                        else:
-                            #find hall
-                            next_ipaddress = str(int(iplist[-1]+i))
+                        
 
                     next_ipaddress=str(netaddr.IPAddress(next_ipaddress))
                 if smartvalidation.check_ipaddress_network_presence(next_ipaddress,loadconfig.get_deployment_interface(),'s') == False:
