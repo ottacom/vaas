@@ -19,6 +19,8 @@ def load():
     global ipclass
     global ipnetwork
     global deployment_interface
+    global dhcpkey
+    global dhcpkey_name
     try:
 
             defaultsettings = configparser.ConfigParser()
@@ -31,6 +33,8 @@ def load():
             hostname_prefix=defaultsettings.get('Networking', 'hostname_prefix').lower()
             ansible_cfg=defaultsettings.get('Ansible', 'ansible_cfg')
             rndckey=defaultsettings.get('Dns', 'rndckey')
+            dhcpkey=defaultsettings.get('Dhcp', 'dhcpkey')
+            dhcpkey_name=defaultsettings.get('Dhcp', 'dhcpkey_name')
             tinydbfile=defaultsettings.get('Tinydb', 'tinydbfile')
 
             if not deployment_domain:
@@ -173,6 +177,11 @@ def get_rndckey():
 
     return rndckey
 
+def get_dhcpkey():
+
+    return dhcpkey
+def get_dhcpkey_name():
+    return dhcpkey_name
 def get_tinydbfile():
 
     return tinydbfile

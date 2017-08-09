@@ -8,7 +8,7 @@ from lib import dnsdbengine
 from lib import tinydbengine
 from lib import selfgeneration
 from lib import progressbar
-
+from lib import dhcpdbengine
 
 import validators #https://validators.readthedocs.io/en/latest/#module-validators.domain
 import dns.query #http://www.dnspython.org/
@@ -19,6 +19,7 @@ import sys
 import os
 import getpass
 from time import gmtime, strftime
+
 
 
 def progressbar(count, total, suffix=''):
@@ -71,7 +72,7 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
     progressbar(60,100,'Check database inventory..      ')
     if tinydbengine.check_db_presence(macaddress,ipaddress,fqdn_hostname) == True:
         return False
-    progressbar(65,100,'Check RFC prefix compliance..      ')
+    progressbar(62,100,'Check RFC prefix compliance..      ')
     if smartvalidation.check_prefix_syntax(prefix) == False:
         return False
 
@@ -92,10 +93,16 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
 
 def total_rollback():
     #Rollback
+    progressbar(30,100, "Deleting host from the database...           ")
     tinydbengine.db_del_host(ipaddress)
-    dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'A', dpl_hostname)
-    dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'PTR', ipaddress)
-    dnsdbengine.dns_rollback_record(loadconfig.get_deployment_domain(), 'TXT', dpl_hostname+".info")
+    progressbar(20,100, "Deleting host from the DNS...                ")
+    dnsdbengine.dns_del_record(loadconfig.get_deployment_domain(), 'A', dpl_hostname)
+    dnsdbengine.dns_del_record(loadconfig.get_deployment_domain(), 'PTR', ipaddress)
+    dnsdbengine.dns_del_record(loadconfig.get_deployment_domain(), 'TXT', dpl_hostname+".info")
+    progressbar(10,100, "Deleting host lease from the DHCP...         ")
+    dhcpdbengine.dhcp_del_host(macaddress,ipaddress,dpl_hostname)
+    progressbar(0,100, "Rollback completed...             ")
+
     print
 #MAIN
 if __name__ == "__main__":
@@ -146,6 +153,7 @@ if __name__ == "__main__":
         prefix = loadconfig.get_hostname_prefix()
     if args.dpl_hostname:
         dpl_hostname=prefix+args.dpl_hostname.lower()
+        dpl_hostname=str(dpl_hostname.strip())
     else:
         dpl_hostname =""
     if args.macaddress:
@@ -194,6 +202,8 @@ if __name__ == "__main__":
         quit()
         sys.exit(1)
 
+
+
     print "Vaas phase 2/2 : Deploying the host"
     progressbar(1,100,'Working on the  inventory...')
 
@@ -204,13 +214,11 @@ if __name__ == "__main__":
 
     #Adding host to the db
     progressbar(20,100,'Adding host in the inventory...')
-    tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,prefix+dpl_hostname,group,template,username)
+    tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,dpl_hostname,group,template,username)
     #Adding host to dns
     progressbar(30,100, "Adding host in the dns...            ")
     ddate = strftime("%Y-%m-%d-%H:%M:%S", gmtime())
-
     txt_string = macaddress+","+ipaddress+","+group+","+template+","+ddate
-    #adding A ,PTR, TXTrecord
 
     if dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'A',dpl_hostname,ipaddress) == False \
         or dnsdbengine.dns_add_record(loadconfig.get_deployment_domain(),'PTR',ipaddress,fqdn_hostname) == False \
@@ -218,6 +226,12 @@ if __name__ == "__main__":
         progressbar(0,100, "No-go, Rollback procedure activated, nothing has been changed")
         print "Someting is going wrong during DNS update"
         #Rollback
+        total_rollback()
+        quit()
+        sys.exit(1)
+
+    progressbar(40,100, "Adding host lease in the dhcp...")
+    if dhcpdbengine.dhcp_add_host(macaddress,ipaddress,dpl_hostname)== False:
         total_rollback()
         quit()
         sys.exit(1)
