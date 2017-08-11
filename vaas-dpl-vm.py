@@ -138,18 +138,10 @@ if __name__ == "__main__":
                   help="""Ansible group ,if the grup it doesn't exits a new one will be created""")
     parser.add_argument('-p', '--prefix',
                   required=False,
-<<<<<<< HEAD
                   help="""Ansible prefix , if note specified it will get the prefix in the default.conf""")
     parser.add_argument('-v', '--ansiblevariables',
                   required=False,
                   help="""Ansible variables for the host""")
-=======
-                  help="""Host prefix , if note specified it will get the prefix in the default.conf""")
-    parser.add_argument('-av', '--ansible',
-                  required=False,
-                  help="""All the ansible variables can be defined here""")
->>>>>>> 576547de37921dc5769d644685339c76cb303aa3
-
 
     #load and normalize command parameters
     args = parser.parse_args()

@@ -1,0 +1,1 @@
+{"_default": {}, "inventory": {"1": {"username": "root", "macaddress": "00:50:56:00:00:00", "fqdn_hostname": "dpl-192-168-80-10", "group": "12", "template": "dako", "ansiblevariables": null, "hostname": "dpl-192-168-80-10.dpl-dmi.dk", "ipaddress": "192.168.80.10", "id": "2d6e769f3288de31e8fb9a2f8c005138", "ddate": "2017-08-11 14:51:16"}}}
