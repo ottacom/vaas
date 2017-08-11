@@ -93,13 +93,14 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
 
 def total_rollback():
     #Rollback
-    progressbar(30,100, "Deleting host from the database...           ")
+    print "Rollback procedure activated"
+    progressbar(100,100, "Deleting host from the database...           ")
     tinydbengine.db_del_host(ipaddress)
-    progressbar(20,100, "Deleting host from the DNS...                ")
+    progressbar(60,100, "Deleting host from the DNS...                ")
     dnsdbengine.dns_del_record(loadconfig.get_deployment_domain(), 'A', dpl_hostname)
     dnsdbengine.dns_del_record(loadconfig.get_deployment_domain(), 'PTR', ipaddress)
     dnsdbengine.dns_del_record(loadconfig.get_deployment_domain(), 'TXT', dpl_hostname+".info")
-    progressbar(10,100, "Deleting host lease from the DHCP...         ")
+    progressbar(30,100, "Deleting host lease from the DHCP...         ")
     dhcpdbengine.dhcp_del_host(macaddress,ipaddress,dpl_hostname)
     progressbar(0,100, "Rollback completed...             ")
 
@@ -137,10 +138,17 @@ if __name__ == "__main__":
                   help="""Ansible group ,if the grup it doesn't exits a new one will be created""")
     parser.add_argument('-p', '--prefix',
                   required=False,
+<<<<<<< HEAD
+                  help="""Ansible prefix , if note specified it will get the prefix in the default.conf""")
+    parser.add_argument('-v', '--ansiblevariables',
+                  required=False,
+                  help="""Ansible variables for the host""")
+=======
                   help="""Host prefix , if note specified it will get the prefix in the default.conf""")
     parser.add_argument('-av', '--ansible',
                   required=False,
                   help="""All the ansible variables can be defined here""")
+>>>>>>> 576547de37921dc5769d644685339c76cb303aa3
 
 
     #load and normalize command parameters
@@ -162,7 +170,11 @@ if __name__ == "__main__":
     ipaddress=args.ipaddress
     template=args.template
     group=args.group
+<<<<<<< HEAD
+    ansiblevariables = args.ansiblevariables
+=======
     print args.ansible()
+>>>>>>> 576547de37921dc5769d644685339c76cb303aa3
     username=getpass.getuser()
 
 
@@ -215,7 +227,11 @@ if __name__ == "__main__":
 
     #Adding host to the db
     progressbar(20,100,'Adding host in the inventory...')
+<<<<<<< HEAD
+    tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,dpl_hostname,group,template,ansiblevariables,username)
+=======
     tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,dpl_hostname,group,template,ansible_variables,username)
+>>>>>>> 576547de37921dc5769d644685339c76cb303aa3
     #Adding host to dns
     progressbar(30,100, "Adding host in the dns...            ")
     ddate = strftime("%Y-%m-%d-%H:%M:%S", gmtime())
