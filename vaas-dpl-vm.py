@@ -131,17 +131,16 @@ if __name__ == "__main__":
                   help="""Virtual machine deployment ip address, if not specified will be assigned the first one available""")
     parser.add_argument('-t', '--template',
                   required=True,
-                  help="""Ansible template , see vaas-tpl-list for all templates available""")
+                  help="""Image template , see vaas-tpl-list for all templates available""")
     parser.add_argument('-g', '--group',
                   required=True,
                   help="""Ansible group ,if the grup it doesn't exits a new one will be created""")
-
     parser.add_argument('-p', '--prefix',
                   required=False,
-                  help="""Ansible prefix , if note specified it will get the prefix in the default.conf""")
-    parser.add_argument('-d', '--deep',
+                  help="""Host prefix , if note specified it will get the prefix in the default.conf""")
+    parser.add_argument('-av', '--ansible',
                   required=False,
-                  help="""A deep network macaddress scan will be performerd before the deployment, it takes time for large class of network""")
+                  help="""All the ansible variables can be defined here""")
 
 
     #load and normalize command parameters
@@ -150,7 +149,7 @@ if __name__ == "__main__":
     if args.prefix:
         prefix=args.prefix.lower()
     else:
-        prefix = loadconfig.get_hostname_prefix()
+        prefix = loadconfig.get_hostname_prefix().lower()
     if args.dpl_hostname:
         dpl_hostname=prefix+args.dpl_hostname.lower()
         dpl_hostname=str(dpl_hostname.strip())
@@ -163,7 +162,9 @@ if __name__ == "__main__":
     ipaddress=args.ipaddress
     template=args.template
     group=args.group
+    print args.ansible()
     username=getpass.getuser()
+
 
     print
     print "Vaas phase 1/2 : Starting deep consistency control go-nogo procedure"
@@ -214,7 +215,7 @@ if __name__ == "__main__":
 
     #Adding host to the db
     progressbar(20,100,'Adding host in the inventory...')
-    tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,dpl_hostname,group,template,username)
+    tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,dpl_hostname,group,template,ansible_variables,username)
     #Adding host to dns
     progressbar(30,100, "Adding host in the dns...            ")
     ddate = strftime("%Y-%m-%d-%H:%M:%S", gmtime())

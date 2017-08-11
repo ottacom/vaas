@@ -43,13 +43,13 @@ def verify_group_presence (group):
     else :
         return False
 
-def db_add_host(macaddress,ipaddress,hostname,fqdn_hostname,group,template,username):
+def db_add_host(macaddress,ipaddress,hostname,fqdn_hostname,group,template,ansible_variables,username):
         ddate = strftime("%Y-%m-%d %H:%M:%S", gmtime())
         ts = time.time()
 
         table.insert({'id_ts' : ts , 'macaddress': macaddress, 'ipaddress': ipaddress ,
         'hostname': hostname , 'fqdn_hostname' :  fqdn_hostname ,
-        'group' : group , 'template' : template , 'username' : username , 'ddate' : ddate})
+        'group' : group , 'template' : template , 'ansible_variables' : ansible_variables , 'username' : username , 'ddate' : ddate})
 
 def db_del_host(ipaddress):
         table.remove(where('ipaddress') == ipaddress)
