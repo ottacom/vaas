@@ -170,11 +170,7 @@ if __name__ == "__main__":
     ipaddress=args.ipaddress
     template=args.template
     group=args.group
-<<<<<<< HEAD
     ansiblevariables = args.ansiblevariables
-=======
-    print args.ansible()
->>>>>>> 576547de37921dc5769d644685339c76cb303aa3
     username=getpass.getuser()
 
 
@@ -227,11 +223,7 @@ if __name__ == "__main__":
 
     #Adding host to the db
     progressbar(20,100,'Adding host in the inventory...')
-<<<<<<< HEAD
     tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,dpl_hostname,group,template,ansiblevariables,username)
-=======
-    tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,dpl_hostname,group,template,ansible_variables,username)
->>>>>>> 576547de37921dc5769d644685339c76cb303aa3
     #Adding host to dns
     progressbar(30,100, "Adding host in the dns...            ")
     ddate = strftime("%Y-%m-%d-%H:%M:%S", gmtime())
