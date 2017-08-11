@@ -3,7 +3,7 @@ from tinydb import TinyDB, where
 from time import gmtime, strftime
 import time
 import loadconfig
-
+import hashlib
 def db_init_database():
     global db
     global table
@@ -43,13 +43,12 @@ def verify_group_presence (group):
     else :
         return False
 
-def db_add_host(macaddress,ipaddress,hostname,fqdn_hostname,group,template,ansible_variables,username):
+def db_add_host(macaddress,ipaddress,hostname,fqdn_hostname,group,template,ansiblevariables,username):
         ddate = strftime("%Y-%m-%d %H:%M:%S", gmtime())
-        ts = time.time()
-
-        table.insert({'id_ts' : ts , 'macaddress': macaddress, 'ipaddress': ipaddress ,
+        ts = hashlib.md5(str(time.time()).replace(".","")).hexdigest()
+        table.insert({'id' : ts , 'macaddress': macaddress, 'ipaddress': ipaddress ,
         'hostname': hostname , 'fqdn_hostname' :  fqdn_hostname ,
-        'group' : group , 'template' : template , 'ansible_variables' : ansible_variables , 'username' : username , 'ddate' : ddate})
+        'group' : group , 'template' : template , 'ansiblevariables' :ansiblevariables , 'username' : username , 'ddate' : ddate})
 
 def db_del_host(ipaddress):
         table.remove(where('ipaddress') == ipaddress)
