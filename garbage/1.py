@@ -1,14 +1,23 @@
-#! /usr/bin/env python
+#!/usr/bin/python
+from __future__ import print_function
+import json
+overarch = {}
+overarch["us"] = [
+    "kc.example.com",
+    "la.example.net",
+]
 
-import sys
-if len(sys.argv) != 2:
-    print "Usage: arping <net>\n  eg: arping 192.168.1.0/24"
-    sys.exit(1)
+overarch["germany"] = ["de.test.net"]
 
-from scapy.all import srp, Ether, ARP, conf
-conf.verb=0
-ans, unans=srp(Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=sys.argv[1]),
-              timeout=5)
+overarch["france"] = ["fr.test.net"]
 
-for snd, rcv in ans:
-    print rcv.sprintf(r"%Ether.src% & %ARP.psrc%")
+overarch["vps"] = {"children":["us", "germany"], "hosts":[]}
+
+hostvars = {}
+hostvars["kc.example.com"] = {"openvpn.port":17601}
+hostvars["la.example.net"] = {"ansible_ssh_port":40000}
+
+overarch["_meta"] = {"hostvars":hostvars}
+
+print(json.dumps(overarch, sort_keys=True, indent=2, separators=(',', ': ')))
+
