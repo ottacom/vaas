@@ -120,7 +120,7 @@ def check_ipaddress_scope(ipaddress,scope_start,scope_end):
 def check_ipaddress_network_presence(ipaddress,interface,silence):
     #try:
             # ping is optional (sends a WHO_HAS request)
-        
+
         command = 'ping -c 2 '+ipaddress+' -I '+interface+' -W 1 > /dev/null'
         sub=subprocess.call(command, shell=True)
 

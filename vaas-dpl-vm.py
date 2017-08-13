@@ -143,6 +143,9 @@ if __name__ == "__main__":
                   required=False,
                   help="""Ansible variables for the host""")
 
+
+
+
     #load and normalize command parameters
     args = parser.parse_args()
     #Prefix needs to be the frist control in order to generate the hostname
@@ -215,7 +218,7 @@ if __name__ == "__main__":
 
     #Adding host to the db
     progressbar(20,100,'Adding host in the inventory...')
-    tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,dpl_hostname,group,template,ansiblevariables,username)
+    tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,group,template,ansiblevariables,username)
     #Adding host to dns
     progressbar(30,100, "Adding host in the dns...            ")
     ddate = strftime("%Y-%m-%d-%H:%M:%S", gmtime())

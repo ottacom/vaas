@@ -8,6 +8,8 @@ sudo pip install dnspython
 sudo pip install ipaddress
 sudo pip install tinydb
 sudo pip install simplejson
+#sudo pip install terminaltables
+sudo pip install texttable
 #sudo pip install scapy
 #sudo pip install python-nmap
 #sudo pip install nmap
