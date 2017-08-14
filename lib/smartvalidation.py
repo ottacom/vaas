@@ -29,6 +29,17 @@ def check_prefix_syntax(prefix):
             print "The prefix "+prefix+" specified is not rfc compliant"
             return False
 
+def check_codeid(codeid):
+
+    if not set('[~!@#$%^&*()+{}":;\']+$').intersection(codeid) and len(codeid) == 32:
+            return True
+    else:
+
+        print"The codeid "+codeid+" specified is not valid"
+        return False
+
+
+
 def check_group_syntax(group):
 
     #syntax rfc control
