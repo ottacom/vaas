@@ -59,9 +59,9 @@ def check_group_syntax(group):
 def check_dns_hostname_presence(hostname,silence):
     try:
         ip=socket.gethostbyname(hostname)
-        if ip and silence !="s":
-
-            print "This hostname "+hostname+" is already taken from "+ip+" please check your inventory"
+        if ip:
+            if (silence ==""):
+                print "This hostname "+hostname+" is already taken from "+ip+" please check your inventory"
             return True
     except  socket.gaierror as e:
             return False
@@ -73,8 +73,9 @@ def check_dns_ipaddress_presence(ipaddress,silence):
     try:
         hostname=socket.gethostbyaddr(ipaddress)
         hostmane_res=hostname[0]
-        if hostname and silence !="s":
-            print "The ip address "+ipaddress+" is already taken from "+hostmane_res+" please check your inventory"
+        if hostname:
+            if (silence ==""):
+                print "The ip address "+ipaddress+" is already taken from "+hostmane_res+" please check your inventory"
             return True
 
     except  socket.herror as e:
@@ -137,9 +138,11 @@ def check_ipaddress_network_presence(ipaddress,interface,silence):
 
         if sub == 1:
             return False
-        if sub == 0 and silence !="" :
+        if sub == 0 :
             fields = os.popen('arp -a '+ipaddress).read().split()
-            print "The ip address "+ipaddress+" is already present the deployment the network with macaddress "+fields[3]
+            if (silence ==""):
+                print "The ip address "+ipaddress+" is already present into the deployment network with macaddress "+fields[3]
+
             return True
         else:
             print"Something is going wrong on network side validation during syscall arping"
@@ -162,9 +165,10 @@ def check_macaddress_network_presence(macaddress,interface,silence):
         sub=subprocess.call(command, shell=True)
         if sub == 1:
             return False
-        if sub == 0 and silence !="" :
+        if sub == 0 :
             fields = ('arping -c 1 '+macaddress+' -i '+interface+' -W 1 > /dev/null').read().split()
-            print "The macaddress "+macaddress+" is already present the deployment the network on ip"+fields[1]
+            if (silence ==""):
+                print "The macaddress "+macaddress+" is already present the deployment the network on ip"+fields[1]
             return True
         else:
             print"Something is going wrong on network side validation during syscall arping"

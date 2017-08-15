@@ -15,7 +15,7 @@ def dhcp_add_host (macaddress,ipaddress,dpl_hostname):
         o.add_host_supersede_name(ipaddress,macaddress,dpl_hostname)
         return True
     except:
-        print "Something is going wron on dhcp server , please check your config"
+        print "Something is going wrong on dhcp server , please check your config"
         return False
 
 
@@ -26,5 +26,5 @@ def dhcp_del_host (macaddress):
         o.del_host(str(macaddress).strip())
         return True
     except:
-        print "Something is going wron on dhcp server  , please check your config"
+        print "Something is going wrong on dhcp server  , please check your config"
         return False

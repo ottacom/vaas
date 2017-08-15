@@ -6,6 +6,7 @@ import loadconfig
 import hashlib
 #import tabulate
 import json
+from progress.spinner import Spinner
 #from terminaltables import AsciiTable, DoubleTable, SingleTable
 import texttable as tt
 def db_init_database():
@@ -15,6 +16,7 @@ def db_init_database():
         #init tinydb
 
         db = TinyDB(loadconfig.get_tinydbfile())
+        #db = TinyDB(loadconfig.get_tinydbfile(), storage=ConcurrencyMiddleware(CachingMiddleware(JSONStorage)))
         table_inventory = db.table('inventory')
     except Exception, e:
         print e
@@ -94,15 +96,24 @@ def verify_group_presence (group):
         return False
 
 def db_add_host(macaddress,ipaddress,fqdn_hostname,group,template,ansiblevariables,username):
+        nextrec=len(db.table('inventory'))+1
         ddate = strftime("%Y-%m-%d %H:%M:%S", gmtime())
         ts = hashlib.md5(str(time.time()).replace(".","")).hexdigest()
         table_inventory.insert({'codeid' : ts , 'macaddress': macaddress, 'ipaddress': ipaddress ,
         'fqdn_hostname' :  fqdn_hostname ,'group' : group , 'template' : template , 'ansiblevariables' :ansiblevariables , 'username' : username , 'ddate' : ddate})
+        #waiting for write
+        spinner = Spinner('Check invnentory consistency')
+        state = ""
+        while state != 'END' :
+            if len(db.table('inventory')) == nextrec:
+                state='END'
+            else:
+                spinner.next()
+
 
 
 def db_del_host(ipaddress):
         table_inventory.remove(where('ipaddress') == ipaddress)
-
 
 
 def db_show_inventory():

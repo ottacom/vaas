@@ -57,7 +57,7 @@ def overall_parameters_validation(codeid,ipaddress):
     idfound=tinydbengine.get_hostdata_by_field('ipaddress',ipaddress,'codeid')
     if not idfound:
         print
-        print "The codeid "+codeid+" it doesn't exist in the inventory"
+        print "The codeid "+codeid+" it doesn't exist in the inventory with this ipaddress"
         return False
 
 
@@ -66,7 +66,7 @@ def overall_parameters_validation(codeid,ipaddress):
 
     if not ipfound:
         print
-        print "The ipaddress "+ipaddress+" it doesn't exist in the inventory"
+        print "The ipaddress "+ipaddress+" it doesn't exist in the inventory with this codeid"
         return False
     if idfound == codeid and ipaddress == ipfound:
         #Hurra' everything's fine here !! Go ahead
@@ -76,6 +76,9 @@ def overall_parameters_validation(codeid,ipaddress):
         print
         print "The ipaddress "+ipaddress+" it doesn't match with the code "+idfound+" , this code is assigned to "+ipfound
         return False
+
+
+
 
 
 def delete_host():

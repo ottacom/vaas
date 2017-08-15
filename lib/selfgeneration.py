@@ -84,6 +84,7 @@ def selfgenerate_macaddress():
                     if len(next_macaddress) <= 15:
                          next_macaddress="00"+next_macaddress
                     if smartvalidation.check_macaddress_network_presence(next_macaddress,loadconfig.get_deployment_interface(),'s') == False:
+
                         break
 
     except Exception, e:
@@ -116,27 +117,23 @@ def selfgenerate_ipaddress():
         else:
 
             #REGEX query
-            inventory=db.table('inventory').search(where('ipaddress').matches('^'+ipclass))
-
-            iplist =[]
-
-            for row in inventory:
-
-                    ipaddress= int(netaddr.IPAddress(row["ipaddress"]))
-                    iplist.append(ipaddress)
 
 
 
-
-
-            iplist=sorted(iplist)
 
             #empty db
             next_ipaddress=""
             i=0
             #looping to check if the ip address generate is good enough
             while True:
+                inventory=db.table('inventory').search(where('ipaddress').matches('^'+ipclass))
+                iplist =[]
+                for row in inventory:
 
+                        ipaddress= int(netaddr.IPAddress(row["ipaddress"]))
+                        iplist.append(ipaddress)
+
+                iplist=sorted(iplist)
                 i+=1
                 #start, end = min(iplist), max(iplist)
                 #miss_ipaddress = sorted(set(range(start, end + 1)).difference(iplist))
@@ -154,11 +151,17 @@ def selfgenerate_ipaddress():
                         #no hall use the higest add
                         if not next_ipaddress:
                             next_ipaddress= str(int(iplist[-1]+i))
-                        
+
 
                     next_ipaddress=str(netaddr.IPAddress(next_ipaddress))
                 if smartvalidation.check_ipaddress_network_presence(next_ipaddress,loadconfig.get_deployment_interface(),'s') == False:
                     break
+                else:
+                    #adding a fake host
+                    tinydbengine.db_add_host('null',next_ipaddress,'null','null','null','null','null')
+                    #print "Another host with "+next_ipaddress+" has been found  , please try again to deploy the host"
+
+
     except Exception, e:
             print e
             print "Something is going wrong during the ipaddress self generation process, the db consistency"

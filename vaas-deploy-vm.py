@@ -9,7 +9,7 @@ from lib import tinydbengine
 from lib import selfgeneration
 from lib import progressbar
 from lib import dhcpdbengine
-
+from lib import resourcemanager
 import validators #https://validators.readthedocs.io/en/latest/#module-validators.domain
 import dns.query #http://www.dnspython.org/
 import dns.tsigkeyring
@@ -31,6 +31,9 @@ def progressbar(count, total, suffix=''):
 
     sys.stdout.write('[%s] %s%s -->%s\r' % (bar, percents, '%', suffix))
     sys.stdout.flush()  # As suggested by Rom Ruben
+
+
+
 
 
 
@@ -91,6 +94,9 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
     return True
 
 
+
+
+
 def total_rollback():
     #Rollback
     print "Rollback procedure activated"
@@ -110,17 +116,24 @@ def total_rollback():
         else:
             progressbar(0,100, "Rollback completed , but Something wrong please check the DNS and the inventory")
     print
+
+
+
+
+
+
+
+
+
+
+
 #MAIN
 if __name__ == "__main__":
-
-
-
-
-
     #VMware asing mac address from 00:50:56:00:00:00 to 00:50:56:3F:FF:FF
 
 
     #Load defaultsettings initialization
+    resourcemanager.chek_resource('/tmp/dpl-lock')
     loadconfig.load()
     tinydbengine.db_init_database()
 
@@ -147,7 +160,7 @@ if __name__ == "__main__":
     parser.add_argument('-v', '--ansiblevariables',
                   required=False,
                   help="""Ansible variables for the host""")
-    
+
 
 
 
@@ -167,6 +180,7 @@ if __name__ == "__main__":
         macaddress=args.macaddress.lower()
     else:
         macaddress =""
+
     ipaddress=args.ipaddress
     template=args.template
     group=args.group
@@ -224,6 +238,9 @@ if __name__ == "__main__":
     #Adding host to the db
     progressbar(20,100,'Adding host in the inventory...')
     tinydbengine.db_add_host(macaddress,ipaddress,fqdn_hostname,group,template,ansiblevariables,username)
+
+
+
     #Adding host to dns
     progressbar(30,100, "Adding host in the dns...            ")
     ddate = strftime("%Y-%m-%d-%H:%M:%S", gmtime())
@@ -252,5 +269,6 @@ if __name__ == "__main__":
             sys.exit(1)
 
     progressbar(100,100, "Host "+fqdn_hostname+" with ipaddress "+ipaddress+" has been deployed!")
+    resourcemanager.free_resource("/tmp/dpl-lock")
     print
     print
