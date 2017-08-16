@@ -125,22 +125,17 @@ def db_show_inventory():
     else :
          tab = tt.Texttable()
          x = [[]] # The empty row will have the header
-
-
-
-
-
          for row in table_inventory.all():
 
              i = i+1
              jsonrow=json.dumps(row)
              fjson=json.loads(jsonrow)
-             x.append([str(i),str(fjson['fqdn_hostname']),str(fjson['ipaddress']),str(fjson['macaddress']),str(fjson['template']),str(fjson['ansiblevariables']),str(fjson['ddate']),str(fjson['username'])])
+             x.append([str(i),str(fjson['fqdn_hostname']),str(fjson['ipaddress']),str(fjson['macaddress']),str(fjson['group']),str(fjson['template']),str(fjson['ansiblevariables']),str(fjson['ddate']),str(fjson['username'])])
 
          tab.add_rows(x)
-         tab.header(['Number','Hostname', 'Ipaddress', 'Macaddress','Template','AnsibleVariables','Created','Username'])
-         tab.set_cols_align(['c','c','c','c','c','c','c','c'])
-         tab.set_cols_width([9,30,15,17,20,20,10,10])
+         tab.header(['Number','Hostname', 'Ipaddress', 'Macaddress','Group','Template','AnsibleVariables','Created','Username'])
+         tab.set_cols_align(['c','c','c','c','c','c','c','c','c'])
+         tab.set_cols_width([9,30,15,17,15,17,17,10,10])
          print tab.draw()
 
 

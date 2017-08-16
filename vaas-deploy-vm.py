@@ -10,6 +10,7 @@ from lib import selfgeneration
 from lib import progressbar
 from lib import dhcpdbengine
 from lib import resourcemanager
+from lib import messagemanager
 import validators #https://validators.readthedocs.io/en/latest/#module-validators.domain
 import dns.query #http://www.dnspython.org/
 import dns.tsigkeyring

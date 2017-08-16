@@ -4,6 +4,10 @@ from netaddr import * #http://netaddr.readthedocs.io/en/latest/tutorial_01.html
 import os, sys
 from lib import spinner
 import subprocess
+import messagemanager
+
+
+
 
 def check_hostname_syntax(hostname):
 
@@ -17,8 +21,7 @@ def check_hostname_syntax(hostname):
         if not set('[~!@#$%^&*()+{}":;\']+$').intersection(hostname):
                 return True
         else:
-
-            print"The hostname "+hostname+" specified is not rfc compliant"
+            print messagemanager.display_message('1', [hostname])
             return False
 
 def check_prefix_syntax(prefix):
@@ -26,7 +29,7 @@ def check_prefix_syntax(prefix):
         if not set('[~!@#$%^&*()+{}":;\']+$').intersection(prefix):
             return True
         else:
-            print "The prefix "+prefix+" specified is not rfc compliant"
+            print messagemanager.display_message('2', [prefix])
             return False
 
 def check_codeid(codeid):
@@ -35,7 +38,7 @@ def check_codeid(codeid):
             return True
     else:
 
-        print"The codeid "+codeid+" specified is not valid"
+        print messagemanager.display_message('3', [codeid])
         return False
 
 
@@ -52,8 +55,9 @@ def check_group_syntax(group):
         if not set('[~!@#$%^&*()+{}":;\']+$').intersection(group):
                 return True
         else:
+            
+            print messagemanager.display_message('4', [group])
 
-            print"The group "+group+" specified is not rfc compliant"
             return False
 
 def check_dns_hostname_presence(hostname,silence):
@@ -61,12 +65,12 @@ def check_dns_hostname_presence(hostname,silence):
         ip=socket.gethostbyname(hostname)
         if ip:
             if (silence ==""):
-                print "This hostname "+hostname+" is already taken from "+ip+" please check your inventory"
+                print messagemanager.display_message('5', [hostname,ip])
             return True
     except  socket.gaierror as e:
             return False
     except :
-            print "I can't verify if the hostname is already taken , please check your DNS"
+            messagemanager.display_message('6', [])
             return False
 
 def check_dns_ipaddress_presence(ipaddress,silence):
@@ -75,7 +79,7 @@ def check_dns_ipaddress_presence(ipaddress,silence):
         hostmane_res=hostname[0]
         if hostname:
             if (silence ==""):
-                print "The ip address "+ipaddress+" is already taken from "+hostmane_res+" please check your inventory"
+                print "The ip address "+ipaddress+" is already taken from "+hostmane_res+" please  inventory"
             return True
 
     except  socket.herror as e:
