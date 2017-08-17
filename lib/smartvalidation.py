@@ -55,7 +55,7 @@ def check_group_syntax(group):
         if not set('[~!@#$%^&*()+{}":;\']+$').intersection(group):
                 return True
         else:
-            
+
             print messagemanager.display_message('4', [group])
 
             return False
@@ -137,7 +137,8 @@ def check_ipaddress_network_presence(ipaddress,interface,silence):
     #try:
             # ping is optional (sends a WHO_HAS request)
 
-        command = 'ping -c 2 '+ipaddress+' -I '+interface+' -W 1 > /dev/null'
+        # command = 'ping -c 2 '+ipaddress+' -I '+interface+' -W 1 > /dev/null'
+        command = 'fping '+ipaddress+' -I '+interface+' > /dev/null'
         sub=subprocess.call(command, shell=True)
 
         if sub == 1:

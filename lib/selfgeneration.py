@@ -158,7 +158,8 @@ def selfgenerate_ipaddress():
                     break
                 else:
                     #adding a fake host
-                    tinydbengine.db_add_host('null',next_ipaddress,'null','null','null','null','null')
+                    tinydbengine.db_add_host('undfined-host',next_ipaddress,'null','null','null','null','null')
+                    
                     #print "Another host with "+next_ipaddress+" has been found  , please try again to deploy the host"
 
 

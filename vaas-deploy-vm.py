@@ -84,7 +84,7 @@ def overall_parameters_validation(macaddress,ipaddress,dpl_hostname,prefix):
     if smartvalidation.check_macaddress_network_presence(macaddress,loadconfig.get_deployment_interface(),"") == True:
         return False
 
-    progressbar(95,100,'Check if the ipaddress is already present on the network..      ')
+    progressbar(80,100,'Check if the ipaddress is already present on the network..      ')
     if smartvalidation.check_ipaddress_network_presence(ipaddress,loadconfig.get_deployment_interface(),"") == True:
         return False
 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
 
     #Load defaultsettings initialization
-    resourcemanager.chek_resource('/tmp/dpl-lock')
+    resourcemanager.chek_resource()
     loadconfig.load()
     tinydbengine.db_init_database()
 
