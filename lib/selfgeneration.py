@@ -18,7 +18,8 @@ def selfgenerate_macaddress():
         #generating  macaddress
 
         db = TinyDB(loadconfig.get_tinydbfile())
-        tot=len(db.table('inventory').all())
+        inventory=db.table('inventory').search(where('macaddress').matches('^'+loadconfig.get_macaddress_family()))
+        tot=len(inventory)
         next_macaddress = ""
         #print tot
         if tot == 0:
@@ -27,7 +28,7 @@ def selfgenerate_macaddress():
         else:
 
             #REGEX query
-            inventory=db.table('inventory').search(where('macaddress').matches('^'+loadconfig.get_macaddress_family()))
+            #inventory=db.table('inventory').search(where('macaddress').matches('^'+loadconfig.get_macaddress_family()))
 
             #maclist =[]
             intlist =[]
@@ -97,7 +98,7 @@ def selfgenerate_macaddress():
 
 def selfgenerate_ipaddress():
 
-    try:
+    #try:
         global next_ipaddress
 
 
@@ -108,7 +109,8 @@ def selfgenerate_ipaddress():
         ipclass =loadconfig.deployment_network_scope_from[match.a:(match.b+match.size)]
 
         db = TinyDB(loadconfig.get_tinydbfile())
-        tot=len(db.table('inventory').all())
+        inventory=db.table('inventory').search(where('ipaddress').matches('^'+ipclass))
+        tot=len(inventory)
         #print tot
 
         if tot == 0:
@@ -126,24 +128,31 @@ def selfgenerate_ipaddress():
             i=0
             #looping to check if the ip address generate is good enough
             while True:
-                inventory=db.table('inventory').search(where('ipaddress').matches('^'+ipclass))
-                iplist =[]
-                for row in inventory:
 
+                inventory=db.table('inventory')
+
+                iplist =[]
+
+                for row in inventory:
                         ipaddress= int(netaddr.IPAddress(row["ipaddress"]))
                         iplist.append(ipaddress)
+                    
 
                 iplist=sorted(iplist)
+
                 i+=1
+
+
                 #start, end = min(iplist), max(iplist)
                 #miss_ipaddress = sorted(set(range(start, end + 1)).difference(iplist))
+
                 nums = (b for iplist, b in izip(iplist, count(iplist[0])) if iplist != b)
                 next_ipaddress=next(nums, None)
 
                 if not next_ipaddress and not iplist:
                     next_ipaddress = loadconfig.get_deployment_network_scope_from()
                 else:
-                    if len(db.table('inventory')) == 1:
+                    if tot == 1:
                         next_ipaddress=str(int(iplist[-1]+i))
                     else:
                         if len(db.table('inventory').search(where('ipaddress')==loadconfig.get_deployment_network_scope_from())) == 0:
@@ -154,19 +163,20 @@ def selfgenerate_ipaddress():
 
 
                     next_ipaddress=str(netaddr.IPAddress(next_ipaddress))
+
                 if smartvalidation.check_ipaddress_network_presence(next_ipaddress,loadconfig.get_deployment_interface(),'s') == False:
                     break
                 else:
                     #adding a fake host
-                    tinydbengine.db_add_host('undfined-host',next_ipaddress,'null','null','null','null','null')
-                    
+                    tinydbengine.db_add_host('undefined-host',next_ipaddress,'null','null','null','null','null')
+
                     #print "Another host with "+next_ipaddress+" has been found  , please try again to deploy the host"
 
 
-    except Exception, e:
-            print e
-            print "Something is going wrong during the ipaddress self generation process, the db consistency"
-            sys.exit(1)
+    #except Exception, e:
+    #        print e
+    #        print "Something is going wrong during the ipaddress self generation process, the db consistency"
+    #        sys.exit(1)
 
 def selfgenerate_hostname(prefix,ipaddress):
     global next_hostname

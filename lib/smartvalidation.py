@@ -171,7 +171,7 @@ def check_macaddress_network_presence(macaddress,interface,silence):
         if sub == 1:
             return False
         if sub == 0 :
-            fields = ('arping -c 1 '+macaddress+' -i '+interface+' -W 1 > /dev/null').read().split()
+            fields = os.popen('arping -c 1 '+macaddress+' -i '+interface+' -W 1 > /dev/null').read().split()
             if (silence ==""):
                 print "The macaddress "+macaddress+" is already present the deployment the network on ip"+fields[1]
             return True
